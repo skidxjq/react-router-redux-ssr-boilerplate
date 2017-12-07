@@ -10,17 +10,21 @@
         <delete dir="compressed"/>
         <mkdir dir="compressed"/>
     </target>
+    <target name="npm_install">
+        <echo message="begin npm_install..."/>
+        <exec dir="." executable="npm" failonerror="true">
+            <arg line="install"/>
+        </exec>
+    </target>
     <target name="cp-all" description="copy all to compressed">
         <copy todir="compressed" overwrite="true">
             <fileset dir="./"></fileset>
         </copy>
     </target>
-  
+
     <target name="deploy">
-        <!-- <antcall target="build">
-            <param name="env" value="prod"/>
-        </antcall> -->
         <antcall target="clean" />
+        <antcall target="npm_install" />
         <antcall target="cp-all"/>
     </target>
 </project>
