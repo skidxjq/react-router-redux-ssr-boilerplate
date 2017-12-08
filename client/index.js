@@ -1,17 +1,17 @@
-import App from './App'
+import 'babel-polyfill'
+import React from 'react'
 import {
   render
 } from 'react-dom'
 import App from './App.jsx'
 
-import Provider from 'react-redux'
 import { AppContainer } from 'react-hot-loader'
 import { createHashHistory } from 'history'
 //Redux
 import {
   Provider
 } from 'react-redux'
-import createStore from '../isomorphic/store'
+import createStore from '../src/store'
 
 const history = createHashHistory()
 const store = createStore(history)
@@ -24,7 +24,7 @@ const renderApp = (Component) => {
         <Component history={history} />
       </Provider>
     </AppContainer>
-  )
+  , rootEl)
 }
 
 if (module.hot) {

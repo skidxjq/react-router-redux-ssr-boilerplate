@@ -1,7 +1,7 @@
 {
   "apps": [{
     "name": "quhua-node-dev",
-    "script": "./server/server.js",
+    "script": "./bin/www",
     "instances": 1,
     "exec_mode": "cluster",
     "watch": true,
@@ -10,7 +10,7 @@
     }
   }, {
     "name": "quhua-node-production",
-    "script": "./server/server.js",
+    "script": "./bin/www",
     "instances": 1,
     "exec_mode": "cluster",
     "watch": true,

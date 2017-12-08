@@ -2,14 +2,31 @@ import http from 'http'
 import express from 'express'
 
 import path from 'path'
+import logger from 'morgan'
+import cookieParser from 'cookie-parser'
+import bodyParser from 'body-parser'
+
+import serverDev from './server.dev'
+import serverOnline from './server.online'
+
+import {
+  renderProdPage, 
+  renderDevPage
+} from './ssr'
 
 const app = express()
-const mode = process.env.NODE_ENV
-console.log('current NODE_ENV', mode)
-if (mode === 'production') {
+app.use(logger('dev'))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(cookieParser())
+
+const isProduction = process.env.NODE_ENV === 'production'
+if (isProduction) {
 
   app.use('/static', express.static('build'))
 } else {
+  serverDev(app);
+  app.get('*', renderDevPage)
   // const webpack = require('webpack');
   // const dev
   // const renderDev = require('./server.dev')
@@ -22,9 +39,9 @@ if (mode === 'production') {
 }
 
 // app.use('/home', require('./routes/home'))
-app.use('/', require('../routes/index'))
-app.use('/home', require('./routes/home'))
-app.use('/users', require('../routes/users'))
+// app.use('/', require('../routes/index'))
+// app.use('/home', require('./routes/home'))
+// app.use('/users', require('../routes/users'))
 app.use(function (req, res, next) {
   var err = new Error('not found')
   err.status = 404
