@@ -10,8 +10,7 @@ const clientInclude = [clientSrc, src]
 export default {
   context: src,
   resolve: {
-    mainFields: ['jsnext:main', 'main'],
-    extensions: ['.js', '.jsx', '.json', '.web.js', '.css', '.scss'],
+    extensions: ['.js', '.jsx'],
     modules: [path.join(root, 'node_modules')]
 
   },
@@ -19,7 +18,6 @@ export default {
     rules: [{
 
         test: /\.(js|jsx)$/,
-        include: clientInclude,
         use: {
           loader: 'babel-loader'
         }

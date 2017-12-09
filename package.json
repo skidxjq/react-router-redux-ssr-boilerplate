@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_ENV=development webpack-dashboard -- node  ./bin/www",
+    "dev": "cross-env NODE_ENV=development node  ./bin/www",
+    "dist": "npm run clean && npm run build-client && npm run build-server",
+    "build-client": "cross-env NODE_ENV=production webpack --config ./webpack/_prod.babel.js",
+    "build-server": "cross-env NODE_ENV=production webpack --config ./webpack/_ssr.babel.js",
+    "clean": "rm -rf dist",
+    "production": "cross-env NODE_ENV=production node ./bin/www",
     "pm2-dev": "./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-dev"
   },
   "dependencies": {
@@ -30,6 +35,7 @@
     "asset-inject-html-webpack-plugin": "^0.9.1",
     "assets-webpack-plugin": "^3.5.1",
     "autoprefixer": "^7.2.2",
+    "babel-eslint": "^7.2.1",
     "babel-loader": "^7.1.2",
     "babel-plugin-add-module-exports": "^0.2.1",
     "babel-polyfill": "^6.26.0",
@@ -38,7 +44,9 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
     "css-loader": "^0.28.7",
+    "eslint": "^4.13.0",
     "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.5",
     "html-loader": "^0.5.1",
     "node-sass": "^4.7.2",
     "postcss-loader": "^2.0.9",

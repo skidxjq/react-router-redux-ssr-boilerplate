@@ -1,4 +1,12 @@
 import React from 'react'
+import {
+  renderToString
+} from 'react-dom/server'
+import { StaticRouter } from 'react-router-dom'
+import { Provider } from 'react-redux'
+
+import path from 'path'
+const root = process.cwd()
 
 class Html extends React.PureComponent {
   render () {
@@ -14,13 +22,25 @@ class Html extends React.PureComponent {
     const {
       manifest,
       app,
-      vendor
+      vendor,
+      ssr
     } = assets || {}
 
     let state = store.getState()
-
+    var htmlCode
+    if (isProduction) {
+      const ssrRenderJsUrl = path.join(root, 'dist', path.basename(ssr.js))
+      const Layout = require(ssrRenderJsUrl)
+      htmlCode = renderToString(
+        <Provider store={store}>
+          <StaticRouter location={url} context={context}>
+            <Layout />
+          </StaticRouter>
+        </Provider>
+      )
+    }
     const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
-    const Layout = isProduction ? require('../../build/prerender') : () => { }
+    // const Layout = isProduction ? require('../../build/prerender') : () => { }
 
     return (
       <html>
@@ -30,9 +50,15 @@ class Html extends React.PureComponent {
 
         </head>
         <body>
-          <div id='root' />
           <script dangerouslySetInnerHTML={{ __html: initialState }} />
-          <script src='/dev/app.js' />
+          {isProduction ?
+            <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }}></div>
+            :
+            <div id='root' />
+          }
+          {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
+          {isProduction && <script src={vendor.js} />}
+          <script src={isProduction ? app.js : '/dev/app.js'} />
         </body>
       </html>
     )

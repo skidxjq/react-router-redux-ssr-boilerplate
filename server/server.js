@@ -10,20 +10,23 @@ import serverDev from './server.dev'
 import serverOnline from './server.online'
 
 import {
-  renderProdPage, 
+  renderProdPage,
   renderDevPage
 } from './ssr'
 
 const app = express()
 app.use(logger('dev'))
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({
+  extended: false
+}))
 app.use(cookieParser())
 
 const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) {
 
-  app.use('/static', express.static('build'))
+  app.use('/dist', express.static('dist'))
+  app.get('*', renderProdPage)
 } else {
   serverDev(app);
   app.get('*', renderDevPage)
