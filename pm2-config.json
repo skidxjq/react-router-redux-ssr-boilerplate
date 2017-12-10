@@ -11,7 +11,7 @@
   }, {
     "name": "quhua-node-production",
     "script": "./bin/www",
-    "instances": 1,
+    "instances": 4,
     "exec_mode": "cluster",
     "watch": true,
     "env": {

@@ -1,0 +1,10 @@
+{
+  "desc": "this is just a description",
+  "keys": {
+    "A": "data A",
+    "B": "data B",
+    "C": "data C"
+  },
+  "default": "A",
+  "delay": 0
+}

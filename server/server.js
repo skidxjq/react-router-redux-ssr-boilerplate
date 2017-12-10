@@ -8,7 +8,7 @@ import bodyParser from 'body-parser'
 
 import serverDev from './server.dev'
 import serverOnline from './server.online'
-
+import request from 'request'
 import {
   renderProdPage,
   renderDevPage
@@ -23,6 +23,28 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser())
 
 const isProduction = process.env.NODE_ENV === 'production'
+const REMOTE_URL = 'http://localhost:55555'
+app.use('/remote', function (req, res, next) {
+  // console.log(req.url)
+  // request(`${REMOTE_URL}${req.url}`).pipe(res)
+  req.headers['accept'] = 'application/json'
+  delete req.headers.host
+  let r = request({
+    qs: req.body,
+    method: req.method,
+    url: REMOTE_URL + req.url,
+    headers: req.headers
+  }, function (err) {
+    if (err) {
+      console.log(err)
+      res.json(Object.assign(err, {
+        code: -1,
+        msg: err.code
+      }))
+    }
+  })
+  r.pipe(res)
+})
 if (isProduction) {
 
   app.use('/dist', express.static('dist'))
