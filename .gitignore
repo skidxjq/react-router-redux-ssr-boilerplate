@@ -103,3 +103,6 @@ dist
 
 # macOs
 .DS_Store
+
+yarn.lock
+*.heapsnapshot

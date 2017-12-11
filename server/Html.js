@@ -16,7 +16,8 @@ class Html extends React.PureComponent {
       store,
       assets,
       url,
-      context
+      context,
+      data
     } = this.props
 
     const {
@@ -26,20 +27,21 @@ class Html extends React.PureComponent {
       ssr
     } = assets || {}
 
-    let state = store.getState()
+    // let state = store.getState()
     var htmlCode
-    if (isProduction) {
-      const ssrRenderJsUrl = path.join(root, 'dist', path.basename(ssr.js))
-      const Layout = require(ssrRenderJsUrl)
-      htmlCode = renderToString(
-        <Provider store={store}>
-          <StaticRouter location={url} context={context}>
-            <Layout />
-          </StaticRouter>
-        </Provider>
-      )
-    }
-    const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
+    // if (isProduction) {
+    //   const ssrRenderJsUrl = path.join(root, 'dist', path.basename(ssr.js))
+    //   const Layout = require(ssrRenderJsUrl)
+    //   htmlCode = renderToString(
+    //     <Provider store={store}>
+    //       <StaticRouter location={url} context={context}>
+    //         <Layout />
+    //       </StaticRouter>
+    //     </Provider>
+    //   )
+    // }
+    // const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
+    const initialData = `window.__INITIAL_DATA=${JSON.stringify(data)}`
     // const Layout = isProduction ? require('../../build/prerender') : () => { }
 
     return (
@@ -47,15 +49,19 @@ class Html extends React.PureComponent {
         <head>
           <meta charSet="utf-8" />
           <title>{title}</title>
+          <link rel="stylesheet" href={ssr.css}/>
 
         </head>
         <body>
-          <script dangerouslySetInnerHTML={{ __html: initialState }} />
-          {isProduction ?
+          {/* <script dangerouslySetInnerHTML={{ __html: initialState }} /> */}
+          <script dangerouslySetInnerHTML={{ __html: initialData }} />
+          {/* {isProduction ?
             <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }}></div>
             :
             <div id='root' />
-          }
+          } */}
+            <div id='root' />
+          
           {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
           {isProduction && <script src={vendor.js} />}
           <script src={isProduction ? app.js : '/dev/app.js'} />

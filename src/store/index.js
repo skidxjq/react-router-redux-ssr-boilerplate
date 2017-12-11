@@ -18,7 +18,7 @@ export default (history) => {
   const middleware = [thunk, routerMiddleware(history), logger]
   const store = createStore(combineReducers({
     ...Reducers,
-    router: routerReducer
+    router: routerReducer,
   }), applyMiddleware(...middleware))
 
   if (module.hot) {
