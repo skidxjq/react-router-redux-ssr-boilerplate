@@ -4,6 +4,11 @@
     "script": "./bin/www",
     "instances": 1,
     "exec_mode": "cluster",
+    "error_file": "logs/dev/error.log",
+    "out_file": "logs/dev/http.log",
+    "log_date_format": "YYYY-MM-DD HH:mm Z",
+    "ignore_watch": ["node_modules", "logs"],
+    "merge_logs": true,
     "watch": true,
     "env": {
       "NODE_ENV": "development"
@@ -13,18 +18,22 @@
     "script": "./bin/www",
     "instances": 4,
     "exec_mode": "cluster",
-    "watch": true,
+    // "watch": true,
+    "error_file": "logs/prod/error.log",
+    "out_file": "logs/prod/http.log",
+    "merge_logs": true,
+    "log_date_format": "YYYY-MM-DD HH:mm Z",
     "env": {
       "NODE_ENV": "production"
     }
-  },{
+  }, {
     "name": "mock",
     "script": "./mock-server/app.js",
     "instances": 1,
     "exec_mode": "fork",
-    "watch": true,
+    "watch": false,
     "env": {
       "NODE_ENV": "development"
     }
   }]
-} 
+}

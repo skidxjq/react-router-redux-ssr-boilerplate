@@ -9,6 +9,7 @@ import bodyParser from 'body-parser'
 import serverDev from './server.dev'
 import serverOnline from './server.online'
 import request from 'request'
+import config from '../config'
 import {
   renderProdPage,
   renderDevPage
@@ -23,7 +24,7 @@ app.use(bodyParser.urlencoded({
 app.use(cookieParser())
 
 const isProduction = process.env.NODE_ENV === 'production'
-const REMOTE_URL = 'http://localhost:55555'
+const REMOTE_URL = config.remoteApi
 app.use('/remote', function (req, res, next) {
   // console.log(req.url)
   // request(`${REMOTE_URL}${req.url}`).pipe(res)
@@ -48,7 +49,7 @@ app.use('/remote', function (req, res, next) {
 if (isProduction) {
 
   app.use('/dist', express.static('dist'))
-  app.get('*', renderProdPage)
+  app.get('/page', renderProdPage)
 } else {
   serverDev(app);
   app.get('*', renderDevPage)
@@ -79,8 +80,7 @@ app.use(function (err, req, res, next) {
 })
 
 const server = http.createServer(app)
-var port = 12345
-server.listen(port, function () {
+server.listen(config.httpPort, function () {
   // const address = server.address()
-  console.log('server is listening on ip', ' on port ', port)
+  console.log('server is listening on ip', ' on port ', config.httpPort)
 })

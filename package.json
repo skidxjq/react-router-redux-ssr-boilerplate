@@ -9,8 +9,9 @@
     "build-server": "cross-env NODE_ENV=production webpack --config ./webpack/_ssr.babel.js",
     "clean": "rm -rf dist",
     "production": "cross-env NODE_ENV=production node ./bin/www",
-    "pm2-dev": "./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-dev",
-    "pm2-production": "./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-production",
+    "pm2-dev": "npm run pm2-mock && ./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-dev",
+    "pm2-mock": "./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only mock",
+    "pm2-production": "npm run pm2-mock &&./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-production",
     "mock": "cross-env NODE_ENV=development node ./mock-server/app"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
     "react-router-redux": "^5.0.0-alpha.6",
+    "redis": "^2.8.0",
     "redux": "^3.7.2",
     "redux-thunk": "^2.2.0",
     "serve-favicon": "~2.4.2"
@@ -52,6 +54,7 @@
     "file-loader": "^1.1.5",
     "heapdump": "^0.3.9",
     "html-loader": "^0.5.1",
+    "log4js": "^2.3.12",
     "node-fetch": "^1.7.3",
     "node-sass": "^4.7.2",
     "postcss-loader": "^2.0.9",

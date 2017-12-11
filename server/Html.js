@@ -49,7 +49,8 @@ class Html extends React.PureComponent {
         <head>
           <meta charSet="utf-8" />
           <title>{title}</title>
-          <link rel="stylesheet" href={ssr.css}/>
+          {isProduction &&
+            <link rel="stylesheet" href={ssr.css} />}
 
         </head>
         <body>
@@ -60,8 +61,8 @@ class Html extends React.PureComponent {
             :
             <div id='root' />
           } */}
-            <div id='root' />
-          
+          <div id='root' />
+
           {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
           {isProduction && <script src={vendor.js} />}
           <script src={isProduction ? app.js : '/dev/app.js'} />
