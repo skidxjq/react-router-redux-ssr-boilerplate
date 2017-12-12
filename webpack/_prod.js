@@ -79,6 +79,7 @@ const config = {
         keep_fnames: true
         // 不要去修改函数的名称
       },
+      sourceMap: true,
       compress: {
         screw_ie8: true,
         // 压缩选项，去掉对 ie8 的支持

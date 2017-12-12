@@ -25,6 +25,8 @@ module.exports = {
       },
       {
         title: 'Node.js 性能调优之内存篇(四)——cpu-memory-monitor'
+      }, {
+        title: 'Node.js 性能调优之内存篇(五）——cpu-memory-monitor'
       }
     ]
   }

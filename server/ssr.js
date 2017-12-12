@@ -9,27 +9,59 @@ import createStore from '../src/store'
 import createHistory from 'history/createMemoryHistory'
 import { getNewsList } from './api'
 import Html from './Html'
-
+import rClient from './utils/redis'
 const DOCTYPE = `<!DOCTYPE html>`
 const isProduction = process.env.NODE_ENV === 'production'
 const root = process.cwd()
 function renderApp (req, res, store, assets) {
   const context = {}
-  getNewsList().then(news => {
-    const htmlStr = renderToString(
-      <Html
-        title={isProduction ? 'PROD PAGE' : 'DEV PAGE'}
-        store={store}
-        url={req.url}
-        context={context}
-        assets={assets}
-        data={{
-          news
-        }}
-      />
-    )
-    res.send(`${DOCTYPE}${htmlStr}`)
+  const rKey = [
+    req.url,
+    req.headers.cookie,
+    JSON.stringify(req.params)
+  ].join(':')
+  rClient.get(rKey, (err, result) => {
+    if (err)
+      throw err
+    if (result) {
+      const htmlStr = renderToString(
+        <Html
+          title={isProduction ? 'PROD PAGE' : 'DEV PAGE'}
+          store={store}
+          url={req.url}
+          context={context}
+          assets={assets}
+          data={{ news: JSON.parse(result) }}
+        />
+      )
+      res.send(`${DOCTYPE}${htmlStr}`)
+      getNewsList().then(news => {
+        if (JSON.stringify(news) !== result) {
+          // rClient.set(rKey, news, rClient.print)
+          console.log('api not equal to redis cache')
+          rClient.set(rKey, JSON.stringify(news), rClient.print)
+        }
+      })
+    } else {
+      getNewsList().then(news => {
+        const htmlStr = renderToString(
+          <Html
+            title={isProduction ? 'PROD PAGE' : 'DEV PAGE'}
+            store={store}
+            url={req.url}
+            context={context}
+            assets={assets}
+            data={{
+              news
+            }}
+          />
+        )
+        res.send(`${DOCTYPE}${htmlStr}`)
+        rClient.set(rKey, JSON.stringify(news), rClient.print)
+      })
+    }
   })
+
 }
 
 export function renderProdPage (req, res) {

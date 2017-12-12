@@ -5,7 +5,7 @@ import path from 'path'
 import logger from 'morgan'
 import cookieParser from 'cookie-parser'
 import bodyParser from 'body-parser'
-
+import favicon from 'serve-favicon'
 import serverDev from './server.dev'
 import serverOnline from './server.online'
 import request from 'request'
@@ -14,7 +14,6 @@ import {
   renderProdPage,
   renderDevPage
 } from './ssr'
-
 const app = express()
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -25,27 +24,7 @@ app.use(cookieParser())
 
 const isProduction = process.env.NODE_ENV === 'production'
 const REMOTE_URL = config.remoteApi
-app.use('/remote', function (req, res, next) {
-  // console.log(req.url)
-  // request(`${REMOTE_URL}${req.url}`).pipe(res)
-  req.headers['accept'] = 'application/json'
-  delete req.headers.host
-  let r = request({
-    qs: req.body,
-    method: req.method,
-    url: REMOTE_URL + req.url,
-    headers: req.headers
-  }, function (err) {
-    if (err) {
-      console.log(err)
-      res.json(Object.assign(err, {
-        code: -1,
-        msg: err.code
-      }))
-    }
-  })
-  r.pipe(res)
-})
+app.use('/remote', require('./routes/remote'))
 if (isProduction) {
 
   app.use('/dist', express.static('dist'))
@@ -73,9 +52,14 @@ app.use(function (req, res, next) {
   err.status = 404
   next(err)
 })
-
+app.use(favicon(path.join(__dirname, '../favicon.ico')))
+app.get('/robots.txt', function (req, res, next) {
+  res.json({
+    'robots': 1
+  })
+})
 app.use(function (err, req, res, next) {
-  console.error('error: ', err.message)
+  console.error('from ', req.url, 'error: ', err.message)
   res.status(err.status || 500)
 })
 
