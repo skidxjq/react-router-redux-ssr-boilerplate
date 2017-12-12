@@ -1,7 +1,20 @@
 import React from 'react'
 import { Route } from 'react-router'
 import { connect } from 'react-redux'
+import { updateHomeNews } from './HomeAction'
+console.log(updateHomeNews)
 class Home extends React.Component {
+  componentDidMount () {
+    // console.log(socket)
+    const self = this
+    const {
+      socket
+    } = window
+    socket.on('news', (data) => {
+      console.log(data)
+      self.props.updateHomeNews(data)
+    })
+  }
   render () {
     console.log('Home render')
     const {
@@ -28,4 +41,6 @@ function mapStateToProps (state) {
     ...state.home
   }
 }
-export default connect(mapStateToProps)(Home)
+export default connect(mapStateToProps, {
+  updateHomeNews
+})(Home)

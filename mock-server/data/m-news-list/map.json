@@ -1,0 +1,10 @@
+{
+  "default": "normal",
+  "description": "news list ",
+  "keys": {
+    "normal": "normal",
+    "short": "short",
+    "random": "random"
+  },
+  "delay": 5000
+}

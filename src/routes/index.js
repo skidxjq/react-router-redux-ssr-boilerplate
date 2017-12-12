@@ -1,7 +1,8 @@
 import React, { Component } from 'react'
 import { Route, Redirect } from 'react-router'
-
+import io from 'socket.io-client';
 import asyncComponent from './async'
+import socket from '../utils/socket'
 const Home = asyncComponent(() => {
   return System.import('../views/Home')
 })
@@ -14,6 +15,9 @@ const About = asyncComponent(() => {
 })
 
 export default class AppRoutes extends Component {
+  componentDidMount () {
+    window.socket = socket()
+  }
   render () {
     const {
       location

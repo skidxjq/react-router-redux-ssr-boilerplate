@@ -14,6 +14,9 @@ import {
   renderProdPage,
   renderDevPage
 } from './ssr'
+import {
+  createSocketConn
+} from './utils/socket';
 const app = express()
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -21,6 +24,8 @@ app.use(bodyParser.urlencoded({
   extended: false
 }))
 app.use(cookieParser())
+
+
 
 const isProduction = process.env.NODE_ENV === 'production'
 const REMOTE_URL = config.remoteApi
@@ -31,22 +36,9 @@ if (isProduction) {
   app.get('/page', renderProdPage)
 } else {
   serverDev(app);
-  app.get('*', renderDevPage)
-  // const webpack = require('webpack');
-  // const dev
-  // const renderDev = require('./server.dev')
+  app.get('/front', renderDevPage)
 
-  // renderDev(app)
-  // app.get('*', renderDev.renderPage)
-  // app.get('/home', homeRouter)
-  // app.use('/', require('../routes/index'))
-  // app.use('/users', require('../routes/users'))
 }
-
-// app.use('/home', require('./routes/home'))
-// app.use('/', require('../routes/index'))
-// app.use('/home', require('./routes/home'))
-// app.use('/users', require('../routes/users'))
 app.use(function (req, res, next) {
   var err = new Error('not found')
   err.status = 404
@@ -64,6 +56,11 @@ app.use(function (err, req, res, next) {
 })
 
 const server = http.createServer(app)
+
+// bind socket.io to app
+const socketio = createSocketConn(server)
+app.set('socketio', socketio)
+
 server.listen(config.httpPort, function () {
   // const address = server.address()
   console.log('server is listening on ip', ' on port ', config.httpPort)

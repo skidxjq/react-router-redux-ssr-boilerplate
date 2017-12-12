@@ -15,11 +15,16 @@ const isProduction = process.env.NODE_ENV === 'production'
 const root = process.cwd()
 function renderApp (req, res, store, assets) {
   const context = {}
+  const io = req.app.get('socketio')
+  // console.log(req.cookies)
+
+  //这里为了区分不同会话，例如考虑把JSESSIONID放在这里
   const rKey = [
     req.url,
-    req.headers.cookie,
+    req.cookies._ga,
     JSON.stringify(req.params)
   ].join(':')
+  console.log(req.url)
   rClient.get(rKey, (err, result) => {
     if (err)
       throw err
@@ -39,6 +44,7 @@ function renderApp (req, res, store, assets) {
         if (JSON.stringify(news) !== result) {
           // rClient.set(rKey, news, rClient.print)
           console.log('api not equal to redis cache')
+          io.emit('news', { news })
           rClient.set(rKey, JSON.stringify(news), rClient.print)
         }
       })
@@ -57,7 +63,9 @@ function renderApp (req, res, store, assets) {
           />
         )
         res.send(`${DOCTYPE}${htmlStr}`)
-        rClient.set(rKey, JSON.stringify(news), rClient.print)
+        rClient.set(rKey, JSON.stringify(news), function (result) {
+          console.log('totally new date', result)
+        })
       })
     }
   })
