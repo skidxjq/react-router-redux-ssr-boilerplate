@@ -8,7 +8,7 @@
     "build-client": "cross-env NODE_ENV=production webpack --config ./webpack/_prod.babel.js",
     "build-server": "cross-env NODE_ENV=production webpack --config ./webpack/_ssr.babel.js",
     "clean": "rm -rf dist",
-    "production": "cross-env NODE_ENV=production node ./bin/www",
+    "production": "cross-env NODE_ENV=production node  --perf-basic-prof-only-functions ./bin/www",
     "pm2-dev": "npm run pm2-mock && ./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-dev",
     "pm2-mock": "./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only mock",
     "pm2-production": "npm run pm2-mock &&./node_modules/.bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-production",
