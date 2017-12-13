@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE project>
+<project basedir="." default="deploy" name="demo">
+    <target name="build" description="build from src">
+        <exec executable="bash" failonerror="true">
+            <arg line="./build/scripts/build-${env}.sh"/>
+        </exec>
+    </target>
+    <target name="clean" description="clean compressed dir">
+        <delete dir="compressed"/>
+        <mkdir dir="compressed"/>
+    </target>
+    <target name="npm_install">
+        <echo message="begin npm_install..."/>
+        <exec dir="." executable="npm" failonerror="true">
+            <arg line="install"/>
+        </exec>
+    </target>
+    <target name="cp-all" description="copy all to compressed">
+        <copy todir="compressed" overwrite="true">
+            <fileset dir="./"></fileset>
+        </copy>
+    </target>
+
+    <target name="deploy">
+        <antcall target="clean" />
+        <antcall target="npm_install" />
+        <antcall target="cp-all"/>
+    </target>
+</project>
