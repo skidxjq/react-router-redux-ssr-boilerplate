@@ -26,8 +26,7 @@ function renderApp (req, res, store, assets) {
   ].join(':')
   console.log(req.url)
   rClient.get(rKey, (err, result) => {
-    if (err)
-      {throw err}
+    if (err) { throw err }
     if (result) {
       const htmlStr = renderToString(
         <Html

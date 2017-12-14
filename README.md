@@ -10,8 +10,6 @@
 - react-router > 4.2.0 （必须）
 - react-router-redux > 5.0.0 (必须)
 
-## 注意
-若要将本demo，必须在本机安装 redis 作为前提，并配置redis端口为6379 ，密码为umbrella
 
 ## 如何部署
 通用的流程
@@ -21,6 +19,8 @@
 - 开启守护进程 开启http服务监听主线程
 
 ### 注意
+- 若要将本demo，必须在本机安装 redis 作为前提，并配置redis端口为6379 ，密码为umbrella
+- 代码分割[code-splitting](https://webpack.js.org/guides/code-splitting/)的方案参考 ```src/routes/async.js```，有别于react-router4之前的getComponent
 - [react-router4](https://reacttraining.com/react-router/web/guides/philosophy)与react-router之前的版本有很多不同，很多老的方法不能使用，同理需要react-router-redux5
 - 相关的代码建议放到一个文件夹下，如下所示
 ```
@@ -35,14 +35,30 @@
 配置文件在 pm2-config.json中
 
 ### 文件结构说明
-├── dist  (最终的打包目录，包含前端静态文件和后端运行文件)
-├── src   (前后端公用文件夹)
-│  ├── store  (包括reducer、store)
-│  ├── utils  (通用工具函数)
-│  ├── routes  (路由入口，作为前端和后端渲染的入口)
-│  ├── assets  (图片资源文件)
-│  ├── views  (视图层)
-
+```
+├── dist/  (最终的打包目录，包含前端静态文件和后端运行文件)
+├── public/  (公共文件夹，暂时弃用)
+├── webpack/  (webpack配置文件存放的文件夹)
+├── src/   (前后端公用文件夹)
+│  ├── store/  (包括reducer、store)
+│  ├── utils/  (通用工具函数)
+│  ├── routes/  (路由入口，作为前端和后端渲染的入口)
+│  ├── assets/  (图片资源文件)
+│  ├── views/  (视图层)
+```
+server 文件夹详细说明
+```
+├── server/   (前后端公用文件夹)
+│  ├── Html.js  (HTML模板)
+│  ├── server.js  (express服务)
+│  ├── server.dev.js  ( webpack-dev-middlware + webpack-hot-middleware )
+│  ├── server.online.js  (线上的设定，暂时空)
+│  ├── ssr.js  (服务端渲染控制器)
+│  ├── routes/  (特定规则下，例如请求远端接口进行反向代理和缓存用)
+│  ├── utils/  (工具函数)
+│  │  ├── redis.js  (redis-cli客户端连接)
+│  │  ├── socket.js  (socket.io服务端建立)
+```
 
 ### 开发环境
 在clone到本地，以及执行 npm | yarn install 后
@@ -68,7 +84,9 @@ mock接口地址
 npm run dist
 npm run production
 ```
-打开浏览器访问[http://localhost:54321/online]
+打开浏览器访问
+
+[http://localhost:54321/online](http://localhost:54321/online)
 
 如果是pm2启动，则执行（开启cluster模式，运行的实例数等于cpu的个数
 ```bash
