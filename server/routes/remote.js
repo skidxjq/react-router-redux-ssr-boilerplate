@@ -32,7 +32,7 @@ module.exports = function (req, res, next) {
     } else {
       getHttpRemote(req)
         .then(responseBody => {
-          rClient.setValue(rKey, responseBody)
+          rClient.set(rKey, responseBody)
           res.send(responseBody)
         })
         .catch(err => {

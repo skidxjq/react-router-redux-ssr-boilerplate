@@ -23,6 +23,7 @@ class Home extends React.Component {
     return (
       <div className='page page-Home'>
         <h1>Home</h1>
+        <h3>大扎好，我系轱天乐，我四渣渣辉，探挽懒月，介四里没有挽过的船新版本，挤需体验三番钟，里造会干我一样，爱象节款游戏。 </h3>
         <ul>
           {news.map((item, index) => {
             return (

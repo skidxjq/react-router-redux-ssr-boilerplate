@@ -1,154 +1,136 @@
+/**
+ * Created by hzyuanqi1 on 2016/9/21.
+ */
+// import { hideLoading, showLoading, showToast } from '../actions/ui.js'
+// import url from '../../config/url.js'
+// import uri from '../../utils/uri'
 import {
   push
 } from 'react-router-redux'
 
-
-export default function callAPIMiddleware({
+/* global fetch */
+// let prevScope = LogAction.scope
+export default ({
   dispatch,
   getState
-}) {
-  return function (next) {
-    return function (action) {
-      const {
-        types,
-        callType = 'GET',
-        shouldCallAPI = () => true,
-        api,
-        data = {},
-        successFn = () => {},
-        failureFn = () => {}
-      } = action
-      let {
-        body
-      } = action
-      const state = getState()
-      if (!types) {
-        // 普通 action：传递
-        return next(action)
-      }
+}) => {
+  return next => action => {
+    if (!action) return false
+    const {
+      types,
+      api,
+      callType,
+      meta,
+      body,
+      shouldCallAPI
+    } = action
+    const state = getState()
+    const callTypeList = ['get', 'post']
+    if (!api) {
+      return next(action)
+    }
+    // LogAction.setScope('APICall')
+    if (types && !(types.start && types.success && types.failure)) {
+      throw new Error('Expected types has start && success && failure keys.')
+    }
+    if (callTypeList.indexOf(callType) === -1) {
+      throw new Error(`API callType Must be one of ${callTypeList}`)
+    }
 
-      if (!Array.isArray(types) ||
-        types.length !== 3 || !types.every(type => typeof type === 'string')
-      ) {
-        throw new Error('Expected an array of three string types.')
-      }
+    const {
+      start,
+      success,
+      failure
+    } = types
+    if (!shouldCallAPI(state)) {
+      return false
+    }
 
-      if (!shouldCallAPI(state)) {
-        return
-      }
+    dispatch({
+      type: start,
+      payload: {
+        ...body
+      },
+      meta
+    })
 
-      // const [apiRequestType, apiSuccessType, apiFailureType] = ['API_REQUEST', 'API_SUCCESS', 'API_FAILURE']
-      const [requestType, successType, failureType] = types
+    // 所有请求接口都带上来源信息
+    const bodyWithSource = body
 
-      // 触发自定义事件开始
-      dispatch({
-        type: requestType,
-        payload: body,
-        data
-      })
+    // 删除未定义的字段
+    Object.keys(bodyWithSource).forEach((v) => {
+      typeof bodyWithSource[v] === 'undefined' && delete bodyWithSource[v]
+    })
 
-      let fetching
-      if (callType === 'post') {
-        fetching = fetch(api, {
-          method: 'post',
-          credentials: 'include',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        })
-      } else {
-        const toString = Object.keys(body).map(function (key) {
-          return encodeURIComponent(key) + '=' + encodeURIComponent(body[key])
+    const mapCallTypeToFetch = {
+      post: () => fetch(api, {
+        method: 'post',
+        // credentials 设置为每次请求都带上 cookie
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bodyWithSource)
+      }),
+      get: () => {
+        const toString = Object.keys(bodyWithSource).map(function (key, index) {
+          return encodeURIComponent(key) + '=' + encodeURIComponent(bodyWithSource[key])
         }).join('&')
-        fetching = fetch(`${api}?${toString}`, {
+        return fetch(`${api}?${toString}`, {
           method: 'get',
-          credentials: 'include',
           headers: {
             'Accept': 'application/json'
           }
         })
       }
-      return fetching.then(res => res.json())
-        .then(res => {
-          switch (res.code) {
-            case -3:
-              notification.error({
-                message: '错误提示',
-                description: res.msg
-              })
-              return Promise.reject(res)
-            case -2:
-              // session 失效，重新登录，需要重定向到 税友
-              // TODO 跳转到税友登录页面
-              // if (process.env.NODE_ENV === 'api' || process.env.NODE_ENV === 'development' ) {
-              // localStore.set('openLogin', {
-              //   loginFormOpen: true
-              // })
-              // localStore.remove('userInfo')
-              // dispatch(push('/home'))
-              // // }
-              // notification.error({
-              //   message: '错误提示',
-              //   description: '登录超时，请重新登录'
-              // })
-              // dispatch({
-              //   type: failureType,
-              //   data: data,
-              //   payload: {
-              //     ...res
-              //   }
-              // })
-              return Promise.reject(res)
-            case -1:
-              // 请求失败
-              // dispatch(showToast(res.msg))
-              notification.error({
-                message: '错误提示',
-                description: res.msg
-              })
-              return Promise.reject(res)
-            case 0:
-              // 请求成功
+    }
+    const fetching = mapCallTypeToFetch[callType]()
+    // let loadingTimer = setTimeout(() => {
+    //   dispatch(showLoading())
+    // }, 800)
+    // let loadingTimeOutTimer = setTimeout(() => {
+    //   getState().ui.loading.show && dispatch(hideLoading())
+    //   dispatch(showToast('网络加载超时，请重试":))
+    //   throw new Error(`${api} 调用出错`)
+    // }, 4000)
 
-              return Promise.resolve(res)
-              // case 1:
-              //   // 请求成功，需要重定向
-              //   dispatch(push(redirect[res.redirect]))
-              // return Promise.resolve(res)
-            default:
-              return Promise.resolve(res)
+    return fetching.then(res => {
+        // clearTimeout(loadingTimer)
+        // try {
+        //   getState().ui.loading.show && dispatch(hideLoading())
+        // } catch (err) {
+        //   console.error(err)
+        // }
+        // clearTimeout(loadingTimeOutTimer)
+        if (res.ok) {
+          try {
+            return res.json()
+          } catch (err) {
+            throw new Error(err)
+          }
+        } else {
+          // dispatch(showToast('请求出错'))
+          return Promise.reject(res.text())
+        }
+      })
+      .then(res => {
+        dispatch({
+          type: success,
+          meta,
+          payload: {
+            ...res.data
           }
         })
-        .then(
-          res => {
-            dispatch({
-              type: successType,
-              data: data,
-              payload: {
-                ...res
-              }
-            })
-            successFn(dispatch, res)
-            return Promise.resolve(res)
-          },
-          err => {
-            dispatch({
-              type: failureType,
-              data: data,
-              payload: {
-                ...err
-              }
-            })
-            failureFn(dispatch, err)
-            // notification.error({
-            //   message: '错误提示',
-            //   description: '请求超时，请检查网络环境'
-            // })
-            return Promise.reject(err)
-          }
-        )
-    }
+        // LogAction.setScope(prevScope)
+        return Promise.resolve(res)
+      })
+      .catch(err => {
+        // getState().ui.loading.show && dispatch(hideLoading())
+        // LogAction.error('Failed', `接口请求出错,api: ${api},callType: ${callType},body: ${JSON.stringify(body)},res: ${err} || ${JSON.stringify(err)}`)
+        // LogAction.setScope(prevScope)
+        return Promise.reject(`接口请求出错,api: ${api},callType: ${callType},body: ${JSON.stringify(body)},res: ${err} || ${JSON.stringify(err)}`)
+      })
+
   }
 }

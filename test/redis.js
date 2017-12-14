@@ -1,5 +1,6 @@
 var redis = require('redis');
 var client = redis.createClient(6379, '127.0.0.1', {
+  return_buffers: true,
   no_ready_check: true
 });
 client.auth('umbrella', function (err) {

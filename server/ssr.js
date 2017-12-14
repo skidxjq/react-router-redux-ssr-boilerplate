@@ -18,7 +18,7 @@ function renderApp (req, res, store, assets) {
   const io = req.app.get('socketio')
   // console.log(req.cookies)
 
-  //这里为了区分不同会话，例如考虑把JSESSIONID放在这里
+  // 这里为了区分不同会话，例如考虑把JSESSIONID放在这里
   const rKey = [
     req.url,
     req.cookies._ga,
@@ -27,7 +27,7 @@ function renderApp (req, res, store, assets) {
   console.log(req.url)
   rClient.get(rKey, (err, result) => {
     if (err)
-      throw err
+      {throw err}
     if (result) {
       const htmlStr = renderToString(
         <Html
@@ -69,20 +69,19 @@ function renderApp (req, res, store, assets) {
       })
     }
   })
-
 }
 
 export function renderProdPage (req, res) {
-  // const history = createHistory()
-  // const store = createStore(history)
+  const history = createHistory()
+  const store = createStore(history)
 
   const clientAssets = require('../dist/assets.json')
   const serverAssets = require('../dist/ssr-assets.json')
 
   clientAssets.manifest.text =
-    fs.readFileSync(path.join(root, 'dist', path.basename(clientAssets.manifest.js)), 'utf-8');
-  // renderApp(req, res, store, Object.assign({}, clientAssets, serverAssets))
-  renderApp(req, res, {}, Object.assign({}, clientAssets, serverAssets))
+    fs.readFileSync(path.join(root, 'dist', path.basename(clientAssets.manifest.js)), 'utf-8')
+  renderApp(req, res, store, Object.assign({}, clientAssets, serverAssets))
+  // renderApp(req, res, {}, Object.assign({}, clientAssets, serverAssets))
 }
 
 export function renderDevPage (req, res) {

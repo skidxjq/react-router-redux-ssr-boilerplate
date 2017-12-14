@@ -27,41 +27,41 @@ class Html extends React.PureComponent {
       ssr
     } = assets || {}
 
-    // let state = store.getState()
+    let state = store.getState()
     var htmlCode
-    // if (isProduction) {
-    //   const ssrRenderJsUrl = path.join(root, 'dist', path.basename(ssr.js))
-    //   const Layout = require(ssrRenderJsUrl)
-    //   htmlCode = renderToString(
-    //     <Provider store={store}>
-    //       <StaticRouter location={url} context={context}>
-    //         <Layout />
-    //       </StaticRouter>
-    //     </Provider>
-    //   )
-    // }
-    // const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
+    console.log(url)
+    if (isProduction) {
+      const ssrRenderJsUrl = path.join(root, 'dist', path.basename(ssr.js))
+      const Layout = require(ssrRenderJsUrl)
+      htmlCode = renderToString(
+        <Provider store={store}>
+
+          <StaticRouter location={'/'} context={context}>
+            <Layout />
+          </StaticRouter>
+        </Provider>
+      )
+    }
+    const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
     const initialData = `window.__INITIAL_DATA=${JSON.stringify(data)}`
     // const Layout = isProduction ? require('../../build/prerender') : () => { }
 
     return (
       <html>
         <head>
-          <meta charSet="utf-8" />
+          <meta charSet='utf-8' />
           <title>{title}</title>
           {isProduction &&
-            <link rel="stylesheet" href={ssr.css} />}
+            <link rel='stylesheet' href={ssr.css} />}
 
         </head>
         <body>
-          {/* <script dangerouslySetInnerHTML={{ __html: initialState }} /> */}
+          <script dangerouslySetInnerHTML={{ __html: initialState }} />
           <script dangerouslySetInnerHTML={{ __html: initialData }} />
-          {/* {isProduction ?
-            <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }}></div>
-            :
-            <div id='root' />
-          } */}
-          <div id='root' />
+          {isProduction
+            ? <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }} /> : <div id='root' />
+          }
+          {/* <div id='root' /> */}
 
           {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
           {isProduction && <script src={vendor.js} />}
@@ -70,7 +70,6 @@ class Html extends React.PureComponent {
       </html>
     )
   }
-
 }
 
 export default Html

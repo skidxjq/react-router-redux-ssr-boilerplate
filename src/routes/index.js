@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
-import { Route, Redirect } from 'react-router'
-import io from 'socket.io-client';
+import { Route, Redirect, NavLink } from 'react-router-dom'
+import io from 'socket.io-client'
 import asyncComponent from './async'
 import socket from '../utils/socket'
+import '../style/app.scss'
 const Home = asyncComponent(() => {
   return System.import('../views/Home')
 })
@@ -14,6 +15,10 @@ const About = asyncComponent(() => {
   return System.import('../views/About')
 })
 
+const Reddit = asyncComponent(() => {
+  return System.import('../views/Reddit')
+})
+
 export default class AppRoutes extends Component {
   componentDidMount () {
     window.socket = socket()
@@ -22,12 +27,40 @@ export default class AppRoutes extends Component {
     const {
       location
     } = this.props
+
     return (
-      <div>
-        <h3>大扎好，我系轱天乐，我四渣渣辉，探挽懒月，介四里没有挽过的船新版本，挤需体验三番钟，里造会干我一样，爱象节款游戏。 </h3>
+      <div className='app'>
+        <div>
+          <NavLink
+            to='/'
+            exact
+            activeClassName='active'
+            className='link'>
+            Home
+          </NavLink>
+          <NavLink
+            to='/about'
+            activeClassName='active'
+            className='link'>
+            About
+          </NavLink>
+          <NavLink
+            to='/profile'
+            className='link'
+            activeClassName='active'>
+            Profile
+          </NavLink>
+          <NavLink
+            to='/reddit'
+            className='link'
+            activeClassName='active'>
+            Reddit
+          </NavLink>
+        </div>
         <Route exact path='/' component={Home} />
         <Route exact path='/about' component={About} />
         <Route exact path='/profile' component={Profile} />
+        <Route exact path='/reddit' component={Reddit} />
       </div>
     )
   }

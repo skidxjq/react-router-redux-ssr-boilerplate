@@ -16,7 +16,7 @@ import {
 } from './ssr'
 import {
   createSocketConn
-} from './utils/socket';
+} from './utils/socket'
 const app = express()
 app.use(logger('dev'))
 app.use(bodyParser.json())
@@ -25,19 +25,15 @@ app.use(bodyParser.urlencoded({
 }))
 app.use(cookieParser())
 
-
-
 const isProduction = process.env.NODE_ENV === 'production'
 const REMOTE_URL = config.remoteApi
 app.use('/remote', require('./routes/remote'))
 if (isProduction) {
-
   app.use('/dist', express.static('dist'))
-  app.get('/page', renderProdPage)
+  app.get('/online', renderProdPage)
 } else {
-  serverDev(app);
-  app.get('/front', renderDevPage)
-
+  serverDev(app)
+  app.get('/local', renderDevPage)
 }
 app.use(function (req, res, next) {
   var err = new Error('not found')
