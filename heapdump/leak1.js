@@ -17,3 +17,13 @@ setInterval(function testMemoryLeak () {
     }
   }
 }, 1000)
+
+// memwatch.on('leak', (info) => {
+setTimeout(() => {
+  heapdump.writeSnapShot((err, filename) => {
+    if (err) console.err(err)
+    else console.error('wrote to snapshot:', filename)
+  })
+}, 30000)
+
+// })

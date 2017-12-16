@@ -1,6 +1,7 @@
 Node.js 是前端开发利器，但是关于 Node.js 的线上实践很少有完整的解决方案，鉴于ndp已经开放node.js的部署，且公司内部（如美学、云音乐等）若干部门已经开始将 Node.js 运用到线上，如何在服务器端```科学的```解放前端工程师的生产力？本文将着重以下若干方面对 Node.js 的线上实践进行描述。
 
 [ndp部署Node.js 教程](http://ks.netease.com/blog?id=9378)
+
 NDP的部署Node应用如下图所示，分为<b>构建阶段</b>和<b>部署阶段</b>
 
 ![ndp.png](imgs/ndp.png)
@@ -21,7 +22,7 @@ NDP的部署Node应用如下图所示，分为<b>构建阶段</b>和<b>部署阶
 前端：好的
 ```
 此过程中，如果后端人不在、有其他任务并行，则反馈到客服那里的时间可能更长，
-即使是接入APM[http://apm.netease.com]，也只能检测到执行错误的那一行代码，且线上JS代码均为压缩混淆后的，排查基本没戏
+即使是接入[APM](http://apm.netease.com)，也只能检测到执行错误的那一行代码，且线上JS代码均为压缩混淆后的，排查基本没戏
 ```
 场景二：
 产品：咦，这个页面每次进来都要显示加载中，读取数据么
@@ -100,9 +101,12 @@ pm2 list
 
 ### 内存溢出
 对于浏览器来说，内存溢出在用户浏览器，出了问题不会波及到服务器和其他用户，但是在服务器端，这种问题就需要引起重视，除了代码本身的良好的对象定义与引用规范外，高并发的场景下，对象的分配与释放进行监控。
+#### 在开发阶段
+使用```node --inspect```执行，并使用chrome DevTools去捕获
 
+#### 在线上阶段：
 - 1.从哨兵或者pm2监控，查看内存使用，如果一段时间内持续升高，超过某个设定的阈值报警
-- 2.获取出问题时段的堆栈快照信息，如```v8-profile```,```heapdump```等，这里以```heapdump```的使用为例
+- 2.查找溢出时段的堆栈快照信息，设在t1时刻和t2时刻获取堆栈信息为H(t1)和H(t2)，则去检测增量，这里以```heapdump``` 使用为例
 
 下方是一段有问题的代码 会引起内存泄漏，叫做leak1.js
 ```js
@@ -125,8 +129,74 @@ setInterval(function testMemoryLeak () {
   }
 }, 1000)
 
+// 
+memwatch.on('leak', (info) => {
+  heapdump.writeSnapShot((err, filename) => {
+    if(err) console.err(err)
+    else console.error('wrote to snapshot:', filename)
+  })
+})
 ```
-执行以下脚本作为启动程序，如果是pm2方式启动，则按照配置文件的方法，增加对应的参数
-```bash
-node --perf-basic-prof-only-functions leak1.js
+执行以下脚本作为启动程序，并等生成heapdump-XXXXXXX.heapsnapshot文件，并使用Chrome DevTools -> Memory -> Profiles -> Load，如下图，其中可以展开发现，Object Counts 统计过多没有释放
+
+![profiler](imgs/profiler.png)
+
+而切换到 Statistics 统计数据，发现字符串占用了绝大多数堆空间
+
+![memory-statistics](imgs/memory-statistics.png)
+
+综上，内存分析的流程如下
+
+![memory-watch-flow](imgs/memory-watch-flow.png)
+
+### CPU使用分析
+
+保证每一个请求快速来，快速走，其他任务丢给异步，保证高QPS，分析工具包括有```v8-profiler```,```FlameGraph```等，
+
+#### 开发阶段
+使用`ab` `loadtest`进行压测，当CPU超过设定安全阈值后，捕获CPU执行栈，进行解读
+
+#### 线上阶段
+哨兵报警CPU后，获取两阶段CPU的profiler，开发人员获取后进行分析和问题排查，尽可能的复现出现问题时刻的场景，生成火焰图帮助排查。
+
+上述两阶段的流程如下所示
+
+![cpu-profiling](imgs/cpu-profiling.png)
+
+## Node.js 前端优化
+
+### 接口缓存
 ```
+场景
+
+在浏览信息更多的应用中，用户来回切换页面会调用同一个接口多次，每次读的数据均相同，造成前端等待时间过长。
+```
+
+程序运行的局部性原理，同样可以运用到web应用中，我们设定以下规则
+* 对需要缓存的GET接口，设置缓存配置表，如下```api-cache.json```。每个接口设置```url```, ```depend```决定是否当depend对应的接口更新后，删除当前url对应的缓存数据。
+* ```async```为 true 的时候，可以提前读取缓存数据返回，并请求后端服务，如果有更新，再以websocket方式返回给前端更新
+```js
+[{
+  'url': 'm/api/test-1',
+  'depend': 'm/post/test',
+  'async': true,
+  'method': 'GET',
+}]
+```
+* 由于 POST 接口不具有幂等性， POST接口一般不做缓存，直接代理到实际的后端业务接口
+* 先行设定，POST A接口将可能会影响某些GET接口数据，当POST A接口请求后，清除
+在我们的设计中，我们对所有的后端接口，均做一层映射，映射规则如下，对于后端给定的接口 /m/api/test ，前端均请求至/node/m/api/test Node路由处,
+> send request /node/m/api/test（node路由） ----node---> proxy to /m/api/test（java接口）
+
+大体流程如下图所示
+
+![api-cache](imgs/api-cache.png)
+
+## 其他
+
+- Node.js中的事务处理如何保持
+- 静态资源的获取依旧交由Nginx处理，减轻Node服务器的负担
+## 参考资料
+[https://strongloop.com/strongblog/how-to-heap-snapshots/](https://strongloop.com/strongblog/how-to-heap-snapshots/)
+[Debugging-node-js-in-production](https://www.youtube.com/watch?v=O1YP8QP9gLA)
+[https://zhuanlan.zhihu.com/p/27202822](https://zhuanlan.zhihu.com/p/27202822)
