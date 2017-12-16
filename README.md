@@ -54,7 +54,7 @@ server 文件夹详细说明
 │  ├── server.dev.js  ( webpack-dev-middlware + webpack-hot-middleware )
 │  ├── server.online.js  (线上的设定，暂时空)
 │  ├── ssr.js  (服务端渲染控制器)
-│  ├── routes/  (特定规则下，例如请求远端接口进行反向代理和缓存用)
+│  ├── routes/ (特定规则下，例如请求远端接口进行反向代理和缓存用)
 │  ├── utils/  (工具函数)
 │  │  ├── redis.js  (redis-cli客户端连接)
 │  │  ├── socket.js  (socket.io服务端建立)
@@ -88,7 +88,7 @@ npm run production
 
 [http://localhost:54321/online](http://localhost:54321/online)
 
-如果是pm2启动，则执行（开启cluster模式，运行的实例数等于cpu的个数
+如果是pm2启动，则执行（开启cluster模式，运行的实例数等于cpu的个数)
 ```bash
 npm run pm2-production
 ```
