@@ -7,7 +7,7 @@ import App from './App.jsx'
 
 import { AppContainer } from 'react-hot-loader'
 import { createHashHistory } from 'history'
-//Redux
+// Redux
 import {
   Provider
 } from 'react-redux'
@@ -24,7 +24,7 @@ const renderApp = (Component) => {
         <Component history={history} />
       </Provider>
     </AppContainer>
-  , rootEl)
+    , rootEl)
 }
 
 if (module.hot) {

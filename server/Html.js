@@ -61,9 +61,7 @@ class Html extends React.PureComponent {
           {isProduction
             ? <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }} /> : <div id='root' />
           }
-          {/* <div id='root' /> */}
-
-          {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
+          {isProduction && <script src={assets.manifest.js} />}
           {isProduction && <script src={vendor.js} />}
           <script src={isProduction ? app.js : '/dev/app.js'} />
         </body>

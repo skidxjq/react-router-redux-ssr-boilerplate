@@ -8,7 +8,7 @@ NDP的部署Node应用如下图所示，分为<b>构建阶段</b>和<b>部署阶
 
 - [Node.js 适用场景描述](#node-js-)
 - Node.js 线上突发情况处理
-- Node.js 对前端的优化
+- Node.js View层生态
 - Node.js 与 React 的同构实践
 
 ## 纯静态开发的困难场景
@@ -95,7 +95,7 @@ PM2 核心功能
 - 监听任务，如果程序被kill，则执行重启操作
 r
 ```bash
-pm2 list
+$ pm2 list
 ```
 ![pm2-list](imgs/pm2-list.png)
 
@@ -188,14 +188,241 @@ memwatch.on('leak', (info) => {
 在我们的设计中，我们对所有的后端接口，均做一层映射，映射规则如下，对于后端给定的接口 /m/api/test ，前端均请求至/node/m/api/test Node路由处,
 > send request /node/m/api/test（node路由） ----node---> proxy to /m/api/test（java接口）
 
-大体流程如下图所示
+大体流程如下图所示，可以从夸父系统申请```redis```服务器一台，使用```socket.io```建立 websocket 服务器，监听客户端连接，因为redis可以存取任意长度的键值对，我们采取 ```接口名称-会话id-请求参数``` 设置唯一key，如下片段所示
+
+```js
+var redisKey = [
+  req.url,
+  req.cookie.jsessionid,
+  JSON.stringify(req.params）
+].join(':')
+```
 
 ![api-cache](imgs/api-cache.png)
+### 用户数据抓取
+```
+场景：
+运营：GA上能看到每个用户的数据么
+前端：不能的呢，GA上只能看到总体统计上的转化，没有以用户为维度的呢，你得找后端看看
+后端：我这里的访问日志太多了，而且只有接口访问的日志，要整理出用户的有点困难。
+```
+大前提：
+- 由于 CDN 和 Tomcat 服务分开部署，View层被割裂，导致后期跟踪一个用户的访问习惯非常不方便。
+- 业务迭代较快的时候，关于View层的需求会被业务需求滞后，而且与后端开发联调成本高。
+- 所以View层的生态建设，对于web应用的从用户角度的健康迭代有很多帮助。
 
+如何建立View层生态
+- 在使用Node做中间层之后，Node可以拦截每个经过的接口请求，并根据session反差用户ID，记录用户的接口访问记录，并且在加上首屏渲染后，也知道用户在何时访问到首屏。
+- 对于单页应用，路由切换并不会被后端感知，我们可以写一个简单的 Node 服务收集用户切换路由的路径，收集到的数据可以更完整重现用户场景，数据格式如下
+```js
+  app.on('hashchange', function(event) {
+    sendToNode({
+      type: 'hashchange',
+      nextRoute: location.hash,
+      time: Date.now(),
+      prevRoute: oldlocation.hash
+    })
+  })
+```
+- 点击事件的收集，判断用户热区
+```js
+  app.on(['click','tap'], function(event) {
+    sendToNode({
+      type: 'screen click',
+      agent: navigator.userAgent
+      Xaxis: event.clientX,
+      Yaxis: event.clientY,
+    })
+  })
+```
+- 按钮、链接等点击区域反应时间收集,帮助优化交互体验
+```js
+  button.on('click', function(event) {
+    sendToNode({
+      dom: button.getInstanceId(),
+      latence: Date.now() - event.timeStamp()
+    })
+  })
+```
+综上，可以在View层直接复原用户画像
+```
+cat user1-2017-12-14.view.log
+.....
+user1 use iPhone_11_0_1 os
+user1 GET index.html 200 2017-12-14 09:30:40
+user1 repay-button click 2017-12-14 09:31:40
+user1 change-router to /bill 2017-12-14 09:35:40
+user1 leave bill page 2017-12-14 09:35:40
+......
+```
+## Node.js 与 React 的同构实践
+DEMO代码见
+[https://github.com/skidxjq/react-router-redux-ssr-boilerplate](https://github.com/skidxjq/react-router-redux-ssr-boilerplate)
+### 关于同构
+#### 何为同构
+由于前后端时候的相同的语言，所以前后端在代码的共用上达到了新的高度，页面模版、node modules 都可以做成前后通用。同构的雏形，只是共用的代码还是有局限。
+有了Node 后，前端便有了更多的想象空间。前端框架开始考虑兼容服务端渲染，提供更方便的 API，前后端共用一套代码的方案，让服务端渲染越来越便捷。当然，不只是 React 做了这件事，但 React 将这种思想推向高潮，同构的概念也开始广为人传。
+
+React 的虚拟 Dom 以对象树的形式保存在内存中，并存在前后端两种展露原型的形式。
+- 客户端上，虚拟 Dom 通过 ReactDOM 的 Render 方法渲染到页面中
+- 服务端上，React 提供的另外两个方法：ReactDOMServer.renderToString 和 ReactDOMServer.renderToStaticMarkup 可将其渲染为 HTML 字符串。
+#### 同构关键要素
+完善的 Compponent 属性及生命周期与客户端的 render 时机是 React 同构的关键。且需要在前后端渲染相同的 Compponent，将输出一致的 Dom 结构。服务器上的生命周期只会走到```componentWillMount```，服务端结合数据将 Component 渲染成完整的 HTML 字符串并将数据状态返回给客户端，客户端会判断是否可以直接使用或需要重新挂载。
+
+![react-ssr](imgs/react-ssr.png)
+
+#### 场景与思考
+同构的出发点不是 “为了做同构，所以做了”, 而是回归业务，去解决业务场景中SEO、首屏性能、用户体验 等问题，驱动我们去寻找可用的解决方案。在这样的场景下，除了同构本身，我们还需要考虑的是:
+- 高性能的 Node Server
+- 可靠的 同构渲染服务
+- 可控的 运维成本
+- 可复用的 解决方案
+
+#### React16 SSR
+FB在9.26发布了React16正式版，之前万众期待的SSR性能提升没有让大家失望, 引用React核心开发Sasha Aickin的对比图
+
+![react-16](imgs/react16.png)
+
+做个试验，当使用pm2开启4个进程的时候，渲染不同数目的结点，响应时间（RT)和QPS的处理曲线比对如下
+![react16-rt-qps](imgs/react16-rt-qps.png)
+
+### 实现机制
+- 前端工程打包配置方式无特殊处理。
+- 后端工程打包，选择后端渲染的入口文件打包，在webpack配置中（见webpack/_ssr.js)，需要对打包```react-router```中的StaticRouter可以提供一个路径，则会匹配子节点中的路由，渲染出对应的tag，如下所示
+```js
+import { StaticRouter } from 'react-router-dom'
+
+var Layout = require('./server.entry.js')
+htmlCode = ReactDOM.renderToString(
+  <StaticRouter>
+    <Layout />
+  </StaticRouter>
+  
+)
+```
+- webpack中去除html-webpack-plugin，转而使用```assets-webpack-plugin```，打包后生成资源映射文件，如下所示。
+
+客户端映射文件，打包后生成地址在```dist/assets.json```
+```json
+{
+  "vendor": {
+    "js": "/dist/vendor-67bfd404.js"
+  },
+  "app": {
+    "js": "/dist/app-a64e4c79.js",
+    "css": "/dist/css/app-b2a7ffe4.css"
+  },
+  "manifest": {
+    "js": "/dist/manifest-c89d9835.js"
+  }
+}
+```
+
+服务端资源映射，打包后生成地址在```dist/ssr-assets.json```
+```json
+{
+  "ssr": {
+    "js": "/dist/ssr-95320bcba93590a96a18.js",
+    "css": "/dist/css/ssr-34454a3c.css"
+  }
+}
+```
+
+
+
+### 开发环境/线上环境服务端实现
+- 在开发环境，会用到```webpack-dev-middleware```和```webpack-hot-middleware```，且开发环境的没有样式文件入口，所以 开发环境不做首屏直出。
+- 在生产环境，根据上述描述的资源文件做以下三件事情
+  - 引用css路径所在资源（默认css只有一个文件）
+  - 引用manifest文件（此文件为客户端静态资源记录表，客户端执行业务逻辑的入口，必须）
+  - 引用客户端入口文件
+- 如果需要远端数据，则可以声明变量的方式，挂在到客户端window对象上执行
+代码如下
+```js
+const initialState = `window.__INITIAL_STATE = ${JSON.stringify(state)}`
+const initialData = `window.__INITIAL_DATA=${JSON.stringify(data)}`
+
+class HTML extends React.Component {
+  render() {
+    return (
+       <html>
+        <head>
+          <meta charSet='utf-8' />
+          <title>{title}</title>
+          {isProduction &&
+            <link rel='stylesheet' href={ssr.css} />}
+
+        </head>
+        <body>
+          <script dangerouslySetInnerHTML={{ __html: initialState }} />
+          <script dangerouslySetInnerHTML={{ __html: initialData }} />
+          {isProduction
+            ? <div id='root' dangerouslySetInnerHTML={{ __html: htmlCode }} /> : <div id='root' />
+          }
+          {isProduction && <script dangerouslySetInnerHTML={{ __html: manifest.text }} />}
+          {isProduction && <script src={vendor.js} />}
+          <script src={isProduction ? app.js : '/dev/app.js'} />
+        </body>
+      </html>
+    )
+  }
+}
+```
+具体流程如下图所示
+
+![ssr-render](imgs/ssr-render.png)
+### SSR的性能考量
+SSR虽然帮助完善了SEO，首屏直出，但是在高并发场景下，主线程就显得力不从心了，我们从新审视下JS主线程不能丢给异步做的事情
+- 创建浏览器历史
+- 创建store
+- 根据url，计算直出所需的html tag
+
+根据不同的业务场景，当路由所对应的React Component 对应的组件数和层级提升的时候，计算所消耗的资源也增加，由于其单线程特性，这个痛点是不能通过加机器来分担的，只能做降级处理，况且 React的直出过程 存在潜在的内存泄漏。
+由于浏览器的特性，同步的JS逻辑执行完成，才会出现首屏，当SEO的需求没有那么强的时候，可以将服务器端异步获取的数据，以全局变量形式返回给前端，前端获取渲染，不会造成屏闪的现象。
+举例，例如我在服务器端获取的数据。
+在server.js中
+```js
+fetchData(data) => {
+  const initialData = `window.__INITIAL_DATA=${JSON.stringify(data)}`
+
+  return (
+    ///
+    <script dangerouslySetInnerHTML={{ __html: initialData }} />
+    ///
+  )
+}）
+```
+在客户端Reducer中，判断```window.__INITIAL_DATA```有无所需的数据，
+```js
+const defautState = {
+  /// default data 
+}
+const initialState = window.__INITIAL_DATA ? window.__INITIAL_DATA : defautState
+
+export default function(state = initialState, action){
+  ///
+}
+```
+大致流程图如下
+
+![render-monit](imgs/render-monit.png)
+### 懒加载
+react-router 4 中code splitting的方案有所改变，去除getComponent方法，改用webpack中自带的System.import, 具体使用参照仓库中的实现
+在[https://github.com/skidxjq/react-router-redux-ssr-boilerplate](https://github.com/skidxjq/react-router-redux-ssr-boilerplate)中，
+- src目录包含前后端公用的代码，
+- client为前端引用入口文件
+- server为服务器端文件
+
+####  必备插件
 ## 其他
 
 - Node.js中的事务处理如何保持
+
 - 静态资源的获取依旧交由Nginx处理，减轻Node服务器的负担
+
+## 什么样的老业务适合迁移到Node上
+- 前后端完全分离业务
+
 ## 参考资料
 [https://strongloop.com/strongblog/how-to-heap-snapshots/](https://strongloop.com/strongblog/how-to-heap-snapshots/)
 [Debugging-node-js-in-production](https://www.youtube.com/watch?v=O1YP8QP9gLA)

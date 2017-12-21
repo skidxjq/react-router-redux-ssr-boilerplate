@@ -17,11 +17,10 @@ import * as Reducers from './reducers'
 
 const logger = createLogger()
 export default (history) => {
-  
   const middleware = [thunk, callAPIMiddleware, routerMiddleware(history), logger]
   const store = createStore(combineReducers({
     ...Reducers,
-    router: routerReducer,
+    router: routerReducer
   }), applyMiddleware(...middleware))
 
   if (module.hot) {
