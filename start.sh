@@ -2,4 +2,4 @@
 #
 echo "start"
 
-npm run start
+npm run pm2-production
