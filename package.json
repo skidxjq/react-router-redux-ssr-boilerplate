@@ -1,6 +1,4 @@
 {
-  "name": "react-router-redux-ssr-boilerplate",
-  "version": "0.0.0",
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development node  ./bin/www",
