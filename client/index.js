@@ -6,14 +6,14 @@ import {
 import App from './App.jsx'
 
 import { AppContainer } from 'react-hot-loader'
-import { createHashHistory } from 'history'
+import { createBrowserHistory } from 'history'
 // Redux
 import {
   Provider
 } from 'react-redux'
 import createStore from '../src/store'
 
-const history = createHashHistory()
+const history = createBrowserHistory()
 const store = createStore(history)
 const rootEl = document.getElementById('root')
 

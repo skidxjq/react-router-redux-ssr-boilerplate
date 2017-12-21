@@ -30,10 +30,10 @@ const REMOTE_URL = config.remoteApi
 app.use('/remote', require('./routes/remote'))
 if (isProduction) {
   app.use('/dist', express.static('dist'))
-  app.get('/online', renderProdPage)
+  app.get('*', renderProdPage)
 } else {
   serverDev(app)
-  app.get('/local', renderDevPage)
+  app.get('*', renderDevPage)
 }
 app.use(function (req, res, next) {
   var err = new Error('not found')

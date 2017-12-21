@@ -36,7 +36,7 @@ class Html extends React.PureComponent {
       htmlCode = renderToString(
         <Provider store={store}>
 
-          <StaticRouter location={'/'} context={context}>
+          <StaticRouter location={url} context={context}>
             <Layout />
           </StaticRouter>
         </Provider>
