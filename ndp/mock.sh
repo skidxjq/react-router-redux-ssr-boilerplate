@@ -1,3 +1,3 @@
 
-echo "start"
+echo "mock start"
 npm run mock &
