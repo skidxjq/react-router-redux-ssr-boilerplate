@@ -13,18 +13,17 @@
     </target>
     <target name="npm_run_dist">
         <echo>"${basedir} run dist"</echo>
-        <exec dir="${basedir}/deploy" executable="ls">
+        <exec dir="${basedir}/deploy" executable="ls"/>
         <exec dir="${basedir}/deploy" executable="chmod">
-            <arg value="777" />
-            <arg value="${basedir}/deploy/scripts/build-prod.sh" />
+            <arg value="777"/>
+            <arg value="${basedir}/deploy/scripts/build-prod.sh"/>
         </exec>
         <exec executable="/bin/sh">
-            <arg value="-c">
-            <arg value="whoami" />
+            <arg value="-c"/>
+            <arg value="whoami"/>
         </exec>
         <echo message="begin npm_run_dist..."/>
-        <exec executable="${basedir}/deploy/scripts/build-prod.sh" failonerror="true">
-        </exec>
+        <exec executable="${basedir}/deploy/scripts/build-prod.sh" failonerror="true"/>
     </target>
     <target name="cp-all" description="copy all to compressed">
         <copy todir="compressed" overwrite="true">
@@ -34,7 +33,6 @@
  
     <target name="deploy">
         <antcall target="clean" />
-        <antcall target="npm_install" />
         <antcall target="npm_run_dist" />
         <antcall target="cp-all"/>
     </target>
