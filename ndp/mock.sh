@@ -1,3 +1,3 @@
 
 echo "mock start"
-npm run mock &
+node ./mock-server/app

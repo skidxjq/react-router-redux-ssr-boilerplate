@@ -10,7 +10,7 @@
     "pm2-dev": "npm run pm2-mock && ./node_modules/pm2/bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-dev",
     "pm2-mock": "./node_modules/pm2/bin/pm2 startOrGracefulReload ./pm2-config.json --only mock",
     "pm2-production": "npm run pm2-mock &&./node_modules/pm2/bin/pm2 startOrGracefulReload ./pm2-config.json --only quhua-node-production",
-    "mock": "cross-env NODE_ENV=development node ./mock-server/app",
+    "mock": "node ./mock-server/app",
     "ndp": "./node_modules/pm2/bin/pm2  startOrGracefulReload ./pm2-config.json --only mock && ./node_modules/pm2/bin/pm2  startOrGracefulReload ./pm2-config.json --only quhua-node-production",
     "lint": "eslint src server"
   },

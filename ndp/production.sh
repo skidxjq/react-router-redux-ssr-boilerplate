@@ -1,2 +1,2 @@
 echo "production start"
-npm run production &
+NODE_ENV=production node ./bin/www
