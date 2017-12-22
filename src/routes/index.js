@@ -3,7 +3,7 @@ import { Route, Redirect, NavLink } from 'react-router-dom'
 import io from 'socket.io-client'
 import asyncComponent from './async'
 import socket from '../utils/socket'
-import '../style/app.scss'
+import '../style/app.css'
 const Home = asyncComponent(() => {
   return System.import('../views/Home')
 })

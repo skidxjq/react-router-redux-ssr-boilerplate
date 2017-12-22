@@ -1,4 +1,4 @@
 import Home from './Home.jsx'
-import './Home.scss'
+import './Home.css'
 
 export default Home

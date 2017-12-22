@@ -1,4 +1,4 @@
 import Profile from './Profile'
-import './Profile.scss'
+import './Profile.css'
 
 export default Profile

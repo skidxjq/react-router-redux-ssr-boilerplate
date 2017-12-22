@@ -1,0 +1,12 @@
+.app {
+
+}
+
+.app .link {
+  margin-right: 20px;
+}
+
+.app .link.active {
+  pointer-events: none;
+  text-decoration: none;
+}

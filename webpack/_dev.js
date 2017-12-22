@@ -1,7 +1,7 @@
 import path from 'path'
 import webpack from 'webpack'
 import merge from 'webpack-merge'
-import autoprefixer from  'autoprefixer'
+import autoprefixer from 'autoprefixer'
 import base from './_base'
 const root = process.cwd()
 const clientEntry = path.join(root, 'client/index.js')
@@ -18,41 +18,34 @@ const config = {
     filename: '[name].js',
     publicPath: '/dev/',
     chunkFilename: '[name]-[chunkhash:8].js',
-    sourceMapFilename: '[name].map',
+    sourceMapFilename: '[name].map'
   },
   module: {
     rules: [{
       test: /\.(css|scss|sass)$/,
       use: [{
-          loader: 'style-loader',
-          options: {
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'css-loader',
-          options: {
-            sourceMap: true
-          }
-        },
-        {
-          loader: 'postcss-loader',
-          options: {
-            sourceMap: true,
-            plugins: () => [
-              autoprefixer({
-                browsers: ['android >= 4', '> 5%', 'ios >= 7']
-              })
-            ]
-          }
-        },
-        {
-          loader: 'sass-loader',
-          options: {
-            sourceMap: true
-          }
+        loader: 'style-loader',
+        options: {
+          sourceMap: true
         }
-
+      },
+      {
+        loader: 'css-loader',
+        options: {
+          sourceMap: true
+        }
+      },
+      {
+        loader: 'postcss-loader',
+        options: {
+          sourceMap: true,
+          plugins: () => [
+            autoprefixer({
+              browsers: ['android >= 4', '> 5%', 'ios >= 7']
+            })
+          ]
+        }
+      }
       ]
     }]
   },

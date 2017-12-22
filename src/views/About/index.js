@@ -1,4 +1,4 @@
 import About from './About.jsx'
-import './About.scss'
+import './About.css'
 
 export default About

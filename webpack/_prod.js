@@ -55,8 +55,7 @@ const config = {
                 })
               ]
             }
-          },
-          'sass-loader'
+          }
         ]
       })
     }]
