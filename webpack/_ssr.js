@@ -1,8 +1,8 @@
 import path from 'path'
 import webpack from 'webpack'
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import ExtractTextPlugin from 'extract-text-webpack-plugin'
 import base from './_base'
-import AssetsPlugin from 'assets-webpack-plugin';
+import AssetsPlugin from 'assets-webpack-plugin'
 import merge from 'webpack-merge'
 import autoprefixer from 'autoprefixer'
 
@@ -38,8 +38,7 @@ const config = {
                 })
               ]
             }
-          },
-          'sass-loader'
+          }
         ]
       })
     }]
