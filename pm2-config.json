@@ -1,19 +1,8 @@
 {
   "apps": [{
-    "name": "quhua-node-dev",
-    "script": "./bin/www",
-    "instances": 1,
-    "exec_mode": "cluster",
-    "ignore_watch": ["node_modules", "logs"],
-    "merge_logs": true,
-    "watch": true,
-    "env": {
-      "NODE_ENV": "development"
-    }
-  }, {
     "name": "quhua-node-production",
     "script": "./bin/www",
-    "instances": 4,
+    "instances": 2,
     "exec_mode": "cluster",
     "env": {
       "NODE_ENV": "production"
