@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE project>
 <project basedir="." default="deploy" name="demo">
-    <target name="build" description="build from src">
-        <exec executable="bash" failonerror="true">
-            <arg line="./build/scripts/build-${env}.sh"/>
-        </exec>
-    </target>
     <target name="clean" description="clean compressed dir">
         <delete dir="compressed"/>
         <mkdir dir="compressed"/>
@@ -16,15 +11,31 @@
             <arg line="install"/>
         </exec>
     </target>
+    <target name="npm_run_dist">
+        <echo>"${basedir} run dist"</echo>
+        <exec dir="${basedir}/deploy" executable="ls">
+        <exec dir="${basedir}/deploy" executable="chmod">
+            <arg value="777" />
+            <arg value="${basedir}/deploy/scripts/build-prod.sh" />
+        </exec>
+        <exec executable="/bin/sh">
+            <arg value="-c">
+            <arg value="whoami" />
+        </exec>
+        <echo message="begin npm_run_dist..."/>
+        <exec executable="${basedir}/deploy/scripts/build-prod.sh" failonerror="true">
+        </exec>
+    </target>
     <target name="cp-all" description="copy all to compressed">
         <copy todir="compressed" overwrite="true">
             <fileset dir="./"></fileset>
         </copy>
     </target>
-
+ 
     <target name="deploy">
         <antcall target="clean" />
         <antcall target="npm_install" />
+        <antcall target="npm_run_dist" />
         <antcall target="cp-all"/>
     </target>
 </project>
