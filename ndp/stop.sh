@@ -1,2 +1,2 @@
 echo "kill all"
-ps -ef |grep 'node' | xargs kill -9
+pgrep -n node| xargs kill -9
